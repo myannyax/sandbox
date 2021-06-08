@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <string>
 #include <functional>
 
 #include <sys/types.h>
@@ -17,6 +16,7 @@ enum class Hook {
 class Runner {
 public:
     void run();
+    void addHook(Hook, std::function<void(pid_t)>);
 
 private:
     void child() noexcept;

@@ -14,6 +14,11 @@ void Runner::run() {
         cleanup();
         throw;
     }
+    cleanup();
+}
+
+void Runner::addHook(Hook hook, std::function<void(pid_t)> func) {
+    hooks.emplace_back(hook, std::move(func));
 }
 
 void Runner::runImpl() {

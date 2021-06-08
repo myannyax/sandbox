@@ -5,6 +5,7 @@ include(cmake/CPM.cmake)
 add_executable(sandbox
     src/main.cpp
     src/runner.cpp
+    src/modules/exec.cpp
 )
 
 find_package(Threads REQUIRED)
