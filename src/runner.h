@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <string>
 #include <functional>
 
 #include <sys/types.h>
@@ -29,8 +30,8 @@ private:
 private:
     pid_t pid;
     int errorReportPipe[2];
-    sem_t sync; // for synchronizing start of the child process
-    bool syncInited;
+    sem_t* sync; // for synchronizing start of the child process
+    std::string syncName;
 
     std::vector<std::pair<Hook, std::function<void(pid_t)>>> hooks;
 };

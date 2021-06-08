@@ -2,6 +2,8 @@
 
 #include <stdexcept>
 #include <cstring>
+#include <iostream>
+#include <sstream>
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -26,8 +28,10 @@ void Runner::runImpl() {
         throw std::runtime_error{"pipe2() failed"};
     }
 
-    sem_init(&sync, 1, 0);
-    syncInited = true;
+    std::stringstream ss;
+    ss << "/sandbox_sync_" << getpid();
+    syncName = ss.str();
+    sync = sem_open(syncName.c_str(), O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, 0);
 
     pid = fork();
     if (pid < 0) {
@@ -52,9 +56,9 @@ void Runner::cleanup() {
         errorReportPipe[i] = -1;
     }
 
-    if (syncInited) {
-        syncInited = false;
-        sem_destroy(&sync);
+    if (sync) {
+        sem_close(sync);
+        sync = nullptr;
     }
 }
 
@@ -65,7 +69,10 @@ void Runner::callHook(Hook hook) const {
 }
 
 void Runner::child() noexcept {
-    sem_wait(&sync); // wait for signal from parent
+    close(errorReportPipe[0]);
+    sync = sem_open(syncName.c_str(), O_RDWR);
+    sem_wait(sync); // wait for signal from parent
+    sem_close(sync);
     std::string errorMessage;
 
     try {
@@ -82,8 +89,9 @@ void Runner::child() noexcept {
 }
 
 void Runner::parent() {
+    close(errorReportPipe[1]);
     callHook(Hook::ParentBeforeExec);
-    sem_post(&sync);
+    sem_post(sync);
 
     char buf[4096];
     buf[0] = '\0';
@@ -92,6 +100,7 @@ void Runner::parent() {
         // an error occured while starting the program
         throw std::runtime_error{std::string(buf, z)};
     }
+    close(errorReportPipe[0]);
 
     callHook(Hook::ParentAfterExec);
 }
