@@ -20,8 +20,6 @@
 #include "../runner.h"
 
 struct MountNamespace {
-    char* rootfs = "rootfs";
-
     void apply(Runner& runner);
 };
 

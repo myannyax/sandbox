@@ -4,6 +4,8 @@
 
 #include "MountNamespace.h"
 
+static const char* rootfs = "rootfs";
+
 // TODO: change?
 static void die(const char *fmt, ...) {
     va_list params;
