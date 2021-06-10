@@ -7,6 +7,8 @@ add_executable(sandbox
     src/runner.cpp
     src/modules/exec.cpp
     src/modules/wait.cpp
+    src/modules/MountNamespace.cpp
+    src/modules/UserNamespace.cpp
 )
 
 find_package(Threads REQUIRED)

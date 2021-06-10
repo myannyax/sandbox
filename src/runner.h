@@ -7,6 +7,8 @@
 #include <sys/types.h>
 #include <semaphore.h>
 
+#define STACKSIZE (1024*1024)
+
 enum class Hook {
     BeforeExec,
     Exec,

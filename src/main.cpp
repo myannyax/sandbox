@@ -1,6 +1,8 @@
 #include "runner.h"
 #include "modules/exec.h"
 #include "modules/wait.h"
+#include "modules/UserNamespace.h"
+#include "modules/MountNamespace.h"
 
 #include <vector>
 #include <string>
@@ -15,9 +17,13 @@ int main(int argc, char** argv) {
     }
 
     WaitModule waitModule;
+    UserNamespace userNamespaceModule;
+    MountNamespace mountNamespaceModule;
 
     execModule.apply(runner);
     waitModule.apply(runner);
+    //userNamespaceModule.apply(runner);
+    //mountNamespaceModule.apply(runner);
 
     runner.run();
     return waitModule.exitCode;
