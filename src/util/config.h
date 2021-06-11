@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream>
+#include <optional>
 #include <yaml-cpp/yaml.h>
 
 class YamlConfig {
