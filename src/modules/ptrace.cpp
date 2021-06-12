@@ -3,6 +3,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <unordered_map>
+#include <iostream>
 
 #include <sys/wait.h>
 #include <sys/ptrace.h>
@@ -52,9 +53,8 @@ void PtraceModule::apply(Runner& runner) {
     runner.addHook(Hook::ParentAfterExec, [this](pid_t origPid) {
         std::unordered_map<pid_t, ProcessState> states;
         states.emplace(origPid, origPid);
-        bool keepGoing = true;
 
-        while (keepGoing) {
+        while (!states.empty()) {
             int status;
             auto pid = wait(&status);
             if (pid == -1) break;
@@ -63,6 +63,7 @@ void PtraceModule::apply(Runner& runner) {
 
             if (!state.isAttached) {
                 if (WIFSTOPPED(status) && (WSTOPSIG(status) == SIGTRAP || WSTOPSIG(status) == SIGSTOP)) {
+                    std::cerr << "attaching to " << pid << std::endl;
                     // attached
                     state.isAttached = true;
                     restrictProcess(pid);
@@ -83,7 +84,6 @@ void PtraceModule::apply(Runner& runner) {
             if (WIFEXITED(status)) {
                 if (pid == origPid) {
                     exitCode = WEXITSTATUS(status);
-                    keepGoing = false;
                 }
 
                 states.erase(pid);
@@ -93,7 +93,6 @@ void PtraceModule::apply(Runner& runner) {
             if (WIFSIGNALED(status)) {
                 if (pid == origPid) {
                     exitCode = -WTERMSIG(status);
-                    keepGoing = false;
                 }
 
                 states.erase(pid);
@@ -115,7 +114,12 @@ void PtraceModule::apply(Runner& runner) {
 
             if (state.quit) {
                 kill(pid, SIGKILL);
+                states.erase(pid);
             }
+        }
+
+        for (auto& [pid, _] : states) {
+            kill(pid, SIGKILL);
         }
     });
 }
