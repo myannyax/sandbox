@@ -1,7 +1,7 @@
 #include "runner.h"
 #include "util/config.h"
 #include "modules/exec.h"
-#include "modules/wait.h"
+#include "modules/ptrace.h"
 #include "modules/UserNamespace.h"
 #include "modules/MountNamespace.h"
 #include "modules/memory_limit.h"
@@ -46,17 +46,17 @@ int main(int argc, char** argv) {
     execModule.exe = parse_result.unmatched()[0];
     execModule.argv = parse_result.unmatched();
 
-    WaitModule waitModule;
-    UserNamespace userNamespaceModule;
-    MountNamespace mountNamespaceModule;
+    PtraceModule ptraceModule;
+    //UserNamespace userNamespaceModule;
+    //MountNamespace mountNamespaceModule;
     MemoryLimitsModule memoryLimitsModule{config};
 
     execModule.apply(runner);
-    waitModule.apply(runner);
+    ptraceModule.apply(runner);
     //userNamespaceModule.apply(runner);
     //mountNamespaceModule.apply(runner);
     memoryLimitsModule.apply(runner);
 
     runner.run();
-    return waitModule.exitCode;
+    return ptraceModule.exitCode;
 }

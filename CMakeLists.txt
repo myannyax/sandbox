@@ -7,7 +7,7 @@ add_executable(my_sandbox
     src/runner.cpp
     src/util/config.cpp
     src/modules/exec.cpp
-    src/modules/wait.cpp
+    src/modules/ptrace.cpp
     src/modules/MountNamespace.cpp
     src/modules/UserNamespace.cpp
     src/modules/memory_limit.cpp
