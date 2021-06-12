@@ -21,4 +21,9 @@ find_package(Threads REQUIRED)
 
 target_compile_options(my_sandbox PRIVATE -Wall -Wextra -pedantic)
 target_compile_features(my_sandbox PRIVATE cxx_std_20)
-target_link_libraries(my_sandbox PRIVATE Threads::Threads cxxopts::cxxopts yaml-cpp ${Boost_LIBRARIES})
+target_link_libraries(my_sandbox PRIVATE
+    Threads::Threads
+    cxxopts::cxxopts
+    yaml-cpp
+    Boost::log
+)
