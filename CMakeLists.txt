@@ -11,8 +11,7 @@ add_executable(my_sandbox
     src/modules/ptrace.cpp
     src/modules/MountNamespace.cpp
     src/modules/UserNamespace.cpp
-    src/modules/limit.cpp
-)
+    src/modules/limit.cpp)
 
 CPMAddPackage("gh:jarro2783/cxxopts#dd45a0801c99d62109aaa29f8c410ba8def2fbf2")
 CPMAddPackage("gh:jbeder/yaml-cpp#yaml-cpp-0.6.3@0.6.3")
@@ -28,3 +27,4 @@ target_link_libraries(my_sandbox PRIVATE
     yaml-cpp
     Boost::log
 )
+target_include_directories(my_sandbox PRIVATE src)
