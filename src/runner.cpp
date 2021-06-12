@@ -65,6 +65,7 @@ void Runner::cleanup() {
     if (sync) {
         sem_close(sync);
         sync = nullptr;
+        sem_unlink(syncName.c_str());
     }
 }
 
@@ -79,13 +80,12 @@ void Runner::child() noexcept {
     sync = sem_open(syncName.c_str(), O_RDWR);
     sem_wait(sync); // wait for signal from parent
     sem_close(sync);
+    sem_unlink(syncName.c_str());
     std::string errorMessage;
 
     try {
         callHook(Hook::BeforeExec);
         callHook(Hook::Exec);
-        // shouldn't reach here
-        errorMessage = "exec() failed";
     } catch (const std::exception& e) {
         errorMessage = e.what();
     }

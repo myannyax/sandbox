@@ -1,5 +1,7 @@
 #include "exec.h"
 
+#include <cstring>
+#include <stdexcept>
 #include <unistd.h>
 
 void ExecModule::apply(Runner& runner) {
@@ -16,5 +18,7 @@ void ExecModule::apply(Runner& runner) {
             envp.push_back(nullptr);
             execve(exe.data(), argvp.data(), envp.data());
         }
+
+        throw std::runtime_error{std::strerror(errno)};
     });
 }

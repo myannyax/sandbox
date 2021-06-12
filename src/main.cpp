@@ -1,6 +1,6 @@
 #include "runner.h"
 #include "modules/exec.h"
-#include "modules/wait.h"
+#include "modules/ptrace.h"
 #include "modules/UserNamespace.h"
 #include "modules/MountNamespace.h"
 
@@ -16,15 +16,15 @@ int main(int argc, char** argv) {
         execModule.argv.push_back(argv[i]);
     }
 
-    WaitModule waitModule;
-    UserNamespace userNamespaceModule;
-    MountNamespace mountNamespaceModule;
+    PtraceModule ptraceModule;
+    //UserNamespace userNamespaceModule;
+    //MountNamespace mountNamespaceModule;
 
     execModule.apply(runner);
-    waitModule.apply(runner);
+    ptraceModule.apply(runner);
     //userNamespaceModule.apply(runner);
     //mountNamespaceModule.apply(runner);
 
     runner.run();
-    return waitModule.exitCode;
+    return ptraceModule.exitCode;
 }
