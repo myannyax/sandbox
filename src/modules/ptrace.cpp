@@ -137,6 +137,7 @@ void PtraceModule::onTrap(ProcessState& state) {
     state.syscall.args[3] = ptrace(PTRACE_PEEKUSER, state.pid, sizeof(long) * R10     , nullptr);
     state.syscall.args[4] = ptrace(PTRACE_PEEKUSER, state.pid, sizeof(long) * R8      , nullptr);
     state.syscall.args[5] = ptrace(PTRACE_PEEKUSER, state.pid, sizeof(long) * R9      , nullptr);
+    state.syscall.result  = 0;
 
     onSyscall(state);
     if (state.syscall.result) {
