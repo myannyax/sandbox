@@ -18,6 +18,32 @@ static void restrictProcess(pid_t pid) {
     );
 }
 
+std::string ProcessState::readString(void* addr, size_t maxSize) const {
+    char *ptr = (char*)addr;
+    std::string res;
+    if (!ptr) {
+        return res;
+    }
+
+    while (res.size() < maxSize) {
+        long word = ptrace(PTRACE_PEEKDATA, pid, ptr, NULL);
+        if (word == -1) {
+            break;
+        }
+        ptr += sizeof(long);
+        char *c = (char*)&word;
+        for (size_t n = 0; n < sizeof(word); ++c, ++n) {
+            if (*c) {
+                res.push_back(*c);
+            } else {
+                return res;
+            }
+        }
+    }
+
+    return res;
+}
+
 void PtraceModule::apply(Runner& runner) {
     runner.addHook(Hook::BeforeExec, [](pid_t) {
         ptrace(PTRACE_TRACEME, 0, nullptr, nullptr);
@@ -97,12 +123,23 @@ void PtraceModule::apply(Runner& runner) {
 void PtraceModule::onTrap(ProcessState& state) {
     state.inSyscall = !state.inSyscall;
     if (!state.inSyscall) {
-        if (state.syscallErr) {
-            ptrace(PTRACE_POKEUSER, state.pid, sizeof(long) * RAX, (void*)(state.syscallErr));
-            state.syscallErr = 0;
+        if (state.syscall.result) {
+            ptrace(PTRACE_POKEUSER, state.pid, sizeof(long) * RAX, (void*)(state.syscall.result));
+            state.syscall.result = 0;
         }
         return;
     }
 
-    long nr = ptrace(PTRACE_PEEKUSER, state.pid, sizeof(long) * ORIG_RAX, nullptr);
+    state.syscall.nr      = ptrace(PTRACE_PEEKUSER, state.pid, sizeof(long) * ORIG_RAX, nullptr);
+    state.syscall.args[0] = ptrace(PTRACE_PEEKUSER, state.pid, sizeof(long) * RDI     , nullptr);
+    state.syscall.args[1] = ptrace(PTRACE_PEEKUSER, state.pid, sizeof(long) * RSI     , nullptr);
+    state.syscall.args[2] = ptrace(PTRACE_PEEKUSER, state.pid, sizeof(long) * RDX     , nullptr);
+    state.syscall.args[3] = ptrace(PTRACE_PEEKUSER, state.pid, sizeof(long) * R10     , nullptr);
+    state.syscall.args[4] = ptrace(PTRACE_PEEKUSER, state.pid, sizeof(long) * R8      , nullptr);
+    state.syscall.args[5] = ptrace(PTRACE_PEEKUSER, state.pid, sizeof(long) * R9      , nullptr);
+
+    onSyscall(state);
+    if (state.syscall.result) {
+        ptrace(PTRACE_POKEUSER, state.pid, sizeof(long) * ORIG_RAX, (void*)-1);
+    }
 }

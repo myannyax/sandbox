@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 
 int main(int argc, char** argv) {
     Runner runner;
@@ -17,6 +18,16 @@ int main(int argc, char** argv) {
     }
 
     PtraceModule ptraceModule;
+    ptraceModule.onSyscall = [&](ProcessState& state) {
+        if (state.syscall.nr == SYS_openat) {
+            // as an example, forbid opening files from "/tmp"
+            auto path = state.readString((void*)state.syscall.args[1]);
+            if (path.starts_with("/tmp")) {
+                state.syscall.result = -EPERM;
+            }
+        }
+    };
+
     //UserNamespace userNamespaceModule;
     //MountNamespace mountNamespaceModule;
 
