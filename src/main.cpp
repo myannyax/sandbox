@@ -48,43 +48,23 @@ int main(int argc, char** argv) {
     execModule.argv = parse_result.unmatched();
 
     PtraceModule ptraceModule;
-<<<<<<< HEAD
     ptraceModule.onSyscall(SYS_openat, [&](ProcessState& state) {
-        // as an example, forbid opening files from "/tmp"
+        /*// as an example, forbid opening files from "/tmp"
         auto path = state.readString((void*)state.syscall.args[1]);
         if (path.starts_with("/tmp")) {
             state.syscall.result = -EPERM;
-        }
-    });
-
-    //UserNamespace userNamespaceModule;
-    //MountNamespace mountNamespaceModule;
-    LimitsModule memoryLimitsModule{config, ptraceModule};
-
-    execModule.apply(runner);
-    ptraceModule.apply(runner);
-    //userNamespaceModule.apply(runner);
-    //mountNamespaceModule.apply(runner);
-    memoryLimitsModule.apply(runner);
-=======
-    ptraceModule.onSyscall = [&](ProcessState& state) {
-        /*if (state.syscall.nr == SYS_openat) {
-            // as an example, forbid opening files from "/tmp"
-            auto path = state.readString((void*)state.syscall.args[1]);
-            if (path.starts_with("/tmp")) {
-                state.syscall.result = -EPERM;
-            }
         }*/
-    };
+    });
 
     UserNamespace userNamespaceModule;
     MountNamespace mountNamespaceModule;
+    LimitsModule memoryLimitsModule{config, ptraceModule};
 
     execModule.apply(runner);
     ptraceModule.apply(runner);
     userNamespaceModule.apply(runner);
     mountNamespaceModule.apply(runner);
->>>>>>> 8a54c0f (kek)
+    memoryLimitsModule.apply(runner);
 
     runner.run();
     return ptraceModule.exitCode;
