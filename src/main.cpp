@@ -4,7 +4,7 @@
 #include "modules/ptrace.h"
 #include "modules/UserNamespace.h"
 #include "modules/MountNamespace.h"
-#include "modules/memory_limit.h"
+#include "modules/limit.h"
 
 #include <string>
 #include <cxxopts.hpp>
@@ -48,19 +48,17 @@ int main(int argc, char** argv) {
     execModule.argv = parse_result.unmatched();
 
     PtraceModule ptraceModule;
-    ptraceModule.onSyscall = [&](ProcessState& state) {
-        if (state.syscall.nr == SYS_openat) {
-            // as an example, forbid opening files from "/tmp"
-            auto path = state.readString((void*)state.syscall.args[1]);
-            if (path.starts_with("/tmp")) {
-                state.syscall.result = -EPERM;
-            }
+    ptraceModule.onSyscall(SYS_openat, [&](ProcessState& state) {
+        // as an example, forbid opening files from "/tmp"
+        auto path = state.readString((void*)state.syscall.args[1]);
+        if (path.starts_with("/tmp")) {
+            state.syscall.result = -EPERM;
         }
-    };
+    });
 
     //UserNamespace userNamespaceModule;
     //MountNamespace mountNamespaceModule;
-    MemoryLimitsModule memoryLimitsModule{config};
+    LimitsModule memoryLimitsModule{config, ptraceModule};
 
     execModule.apply(runner);
     ptraceModule.apply(runner);

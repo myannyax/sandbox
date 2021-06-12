@@ -14,10 +14,14 @@ int parse_time(const std::string &str) {
         is >> unit;
         boost::to_lower(unit);
         int scale = 1;
-        if (unit == "m") {
-            scale = 60;
+        if (unit == "s") {
+            scale = 1000;
+        } else if (unit == "m") {
+            scale = 60 * 1000;
         } else if (unit == "h") {
-            scale = 60 * 60;
+            scale = 60 * 60 * 1000;
+        } else if (unit == "d") {
+            scale = 24 * 60 * 60 * 1000;
         }
         result += t * scale;
     }

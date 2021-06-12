@@ -2,9 +2,11 @@
 
 #include "../runner.h"
 #include "../util/config.h"
+#include "ptrace.h"
 
-struct MemoryLimitsModule {
+struct LimitsModule {
     const YamlConfig& config;
+    PtraceModule& ptraceModule;
 
     void apply(Runner& runner);
 };

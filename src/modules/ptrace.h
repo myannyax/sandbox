@@ -26,8 +26,12 @@ public:
     int exitCode;
 
     void apply(Runner& runner);
-    std::function<void(ProcessState&)> onSyscall;
+    void onSyscall(long syscall, std::function<void(ProcessState&)> handler);
+    void onStop(long signal, std::function<void(ProcessState&)> handler);
 
 private:
+    std::vector<std::pair<long, std::function<void(ProcessState&)>>> syscallHandlers;
+    std::vector<std::pair<long, std::function<void(ProcessState&)>>> signalHandlers;
+
     void onTrap(ProcessState& state);
 };

@@ -10,7 +10,7 @@ add_executable(my_sandbox
     src/modules/ptrace.cpp
     src/modules/MountNamespace.cpp
     src/modules/UserNamespace.cpp
-    src/modules/memory_limit.cpp
+    src/modules/limit.cpp
 )
 
 CPMAddPackage("gh:jarro2783/cxxopts#dd45a0801c99d62109aaa29f8c410ba8def2fbf2")

@@ -8,6 +8,7 @@
 #include <sys/ptrace.h>
 #include <sys/reg.h>
 #include <sys/syscall.h>
+#include <memory.h>
 
 static void restrictProcess(pid_t pid) {
     ptrace(PTRACE_SETOPTIONS, pid, nullptr,
@@ -62,22 +63,8 @@ void PtraceModule::apply(Runner& runner) {
             auto& state = states.at(pid);
 
             if (!state.isAttached) {
-                if (WIFSTOPPED(status) && (WSTOPSIG(status) == SIGTRAP || WSTOPSIG(status) == SIGSTOP)) {
-                    // attached
-                    state.isAttached = true;
-                    restrictProcess(pid);
-                    ptrace(PTRACE_SYSCALL, pid, nullptr, nullptr);
-                    continue;
-                } else {
-                    // something failed
-                    for (auto& [pid, _] : states) {
-                        kill(pid, SIGKILL);
-                    }
-
-                    std::stringstream ss;
-                    ss << "couldn't attach to pid " << pid;
-                    throw std::runtime_error{ss.str()};
-                }
+                state.isAttached = true;
+                restrictProcess(pid);
             }
 
             if (WIFEXITED(status)) {
@@ -107,6 +94,11 @@ void PtraceModule::apply(Runner& runner) {
                     sig = 0;
                     onTrap(state);
                 }
+                for (auto& [signal, handler] : signalHandlers) {
+                    if (signal == sig) {
+                        handler(state);
+                    }
+                }
 
                 if (!state.quit) {
                     ptrace(PTRACE_SYSCALL, pid, NULL, sig);
@@ -118,6 +110,14 @@ void PtraceModule::apply(Runner& runner) {
             }
         }
     });
+}
+
+void PtraceModule::onSyscall(long syscall, std::function<void(ProcessState&)> handler) {
+    syscallHandlers.emplace_back(syscall, std::move(handler));
+}
+
+void PtraceModule::onStop(long signal, std::function<void(ProcessState&)> handler) {
+    signalHandlers.emplace_back(signal, std::move(handler));
 }
 
 void PtraceModule::onTrap(ProcessState& state) {
@@ -139,7 +139,11 @@ void PtraceModule::onTrap(ProcessState& state) {
     state.syscall.args[5] = ptrace(PTRACE_PEEKUSER, state.pid, sizeof(long) * R9      , nullptr);
     state.syscall.result  = 0;
 
-    onSyscall(state);
+    for (auto& [syscall, handler] : syscallHandlers) {
+        if (syscall == state.syscall.nr) {
+            handler(state);
+        }
+    }
     if (state.syscall.result) {
         ptrace(PTRACE_POKEUSER, state.pid, sizeof(long) * ORIG_RAX, (void*)-1);
     }
