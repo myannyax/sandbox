@@ -3,6 +3,7 @@
 //
 
 #include "UserNamespace.h"
+#include <stdexcept>
 
 // TODO: change?
 static void die(const char *fmt, ...) {
@@ -27,17 +28,16 @@ static void write_file(char path[100], char line[100]) {
     }
 
     if (fclose(f) != 0) {
-        die("Failed to close file %s: %m\n", path);
+        //die("Failed to close file %s: %m\n", path);
     }
 }
 
 void UserNamespace::apply(Runner &runner) {
     runner.addHook(Hook::ParentBeforeExec, [&](pid_t pid) {
-        return;
         char path[100];
         char line[100];
 
-        int uid = 0;
+        int uid = 1000;
 
         sprintf(path, "/proc/%d/uid_map", pid);
         sprintf(line, "0 %d 1\n", uid);

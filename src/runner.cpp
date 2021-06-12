@@ -39,10 +39,10 @@ void Runner::runImpl() {
     syncName = ss.str();
     sync = sem_open(syncName.c_str(), O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, 0);
      // CLONE_NEWPID
-//    int clone_flags = SIGCHLD | CLONE_NEWUTS | CLONE_NEWUSER |CLONE_NEWPID;
-//    static char cmd_stack[STACKSIZE];
-//    pid = clone(runChildHelper, cmd_stack + STACKSIZE, clone_flags, this);
-    pid = fork();
+    int clone_flags = SIGCHLD | CLONE_NEWUTS | CLONE_NEWUSER | CLONE_NEWNS | CLONE_NEWPID;
+    static char cmd_stack[STACKSIZE];
+    pid = clone(runChildHelper, cmd_stack + STACKSIZE, clone_flags, this);
+    //pid = fork();
     if (pid < 0) {
         throw std::runtime_error{"fork() failed"};
     }
