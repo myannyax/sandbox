@@ -21,7 +21,7 @@ void MountNamespace::apply(Runner &runner) {
     runner.addHook(Hook::BeforeExec, [&](pid_t) {
         std::cout << getuid();
 
-        if (mount(rootfsDataPath.data(), rootfsMountPath.data(), "ext4", MS_BIND, ""))
+        if (mount(rootfsDataPath.data(), rootfsMountPath.data(), nullptr, MS_BIND, ""))
             die("Failed to mount %s at %s: %m\n", rootfsDataPath.data(), rootfsMountPath.data());
 
         if (chdir(rootfsMountPath.data()))
