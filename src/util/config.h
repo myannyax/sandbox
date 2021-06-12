@@ -10,14 +10,14 @@ public:
     explicit YamlConfig(const std::string& config_path);
 
     template <class T>
-    std::optional<T> get(const std::string& option_name);
+    std::optional<T> get(const std::string& option_name) const;
 
     template <class T>
-    T get(const std::string& option_name, const T& default_value);
+    T get(const std::string& option_name, const T& default_value) const;
 };
 
 template<class T>
-std::optional<T> YamlConfig::get(const std::string &option_name) {
+std::optional<T> YamlConfig::get(const std::string &option_name) const {
     if (config[option_name]) {
         return config[option_name].as<T>();
     }
@@ -25,7 +25,7 @@ std::optional<T> YamlConfig::get(const std::string &option_name) {
 }
 
 template<class T>
-T YamlConfig::get(const std::string &option_name, const T &default_value) {
+T YamlConfig::get(const std::string &option_name, const T &default_value) const {
     if (config[option_name]) {
         return config[option_name].as<T>();
     }
