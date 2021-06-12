@@ -62,10 +62,11 @@ void PtraceModule::apply(Runner& runner) {
             if (!states.contains(pid)) states.emplace(pid, pid);
             auto& state = states.at(pid);
 
-            if (!state.isAttached) {
-                std::cerr << "attaching to " << pid << std::endl;
+            if (!state.isAttached && WIFSTOPPED(status) && (WSTOPSIG(status) == SIGTRAP || WSTOPSIG(status) == SIGSTOP)) {
                 state.isAttached = true;
                 restrictProcess(pid);
+                ptrace(PTRACE_SYSCALL, pid, NULL, 0);
+                continue;
             }
 
             if (WIFEXITED(status)) {
