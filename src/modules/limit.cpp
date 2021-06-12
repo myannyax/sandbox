@@ -5,6 +5,8 @@
 #include <csignal>
 #include <sys/resource.h>
 #include <iostream>
+#include <cstring>
+#include <unistd.h>
 
 void LimitsModule::apply(Runner &runner) {
     runner.addHook(Hook::ParentBeforeExec, [&](pid_t pid) {
@@ -66,16 +68,6 @@ void LimitsModule::apply(Runner &runner) {
                 });
             }
         }
-    });
-
-    ptraceModule.onStop(SIGSEGV, [&](ProcessState& state) {
-        std::cout << "SIGSEGV" << std::endl;
-        state.quit = true;
-    });
-
-    ptraceModule.onStop(ENOMEM, [&](ProcessState& state) {
-        std::cout << "Memory limit exceeded" << std::endl;
-        state.quit = true;
     });
 
     ptraceModule.onStop(SIGXCPU, [&](ProcessState& state) {
