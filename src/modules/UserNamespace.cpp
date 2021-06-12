@@ -11,7 +11,7 @@ static void die(const char *fmt, ...) {
     va_start(params, fmt);
     vfprintf(stderr, fmt, params);
     va_end(params);
-    exit(1);
+    throw std::runtime_error{"oh god oh fuck"};
 }
 
 // TODO: same as above
@@ -33,10 +33,11 @@ static void write_file(char path[100], char line[100]) {
 
 void UserNamespace::apply(Runner &runner) {
     runner.addHook(Hook::ParentBeforeExec, [&](pid_t pid) {
+        return;
         char path[100];
         char line[100];
 
-        int uid = 1000;
+        int uid = 0;
 
         sprintf(path, "/proc/%d/uid_map", pid);
         sprintf(line, "0 %d 1\n", uid);

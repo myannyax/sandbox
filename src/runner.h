@@ -21,8 +21,9 @@ public:
     void run();
     void addHook(Hook, std::function<void(pid_t)>);
 
-private:
+    //internal
     void child() noexcept;
+private:
     void parent();
 
     void callHook(Hook hook) const;

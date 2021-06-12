@@ -2,9 +2,11 @@
 // Created by Maria.Filipanova on 6/9/21.
 //
 
+#include <iostream>
 #include "MountNamespace.h"
 
-static const char* rootfs = "rootfs";
+static const std::string rootfsDataPath = "rootfs";
+static const std::string rootfsMountPath = "rootfs";
 
 // TODO: change?
 static void die(const char *fmt, ...) {
@@ -17,20 +19,20 @@ static void die(const char *fmt, ...) {
 
 void MountNamespace::apply(Runner &runner) {
     runner.addHook(Hook::BeforeExec, [&](pid_t) {
-        const char *mnt = rootfs;
+        std::cout << getuid();
 
-        if (mount(rootfs, mnt, "ext4", MS_BIND, ""))
-            die("Failed to mount %s at %s: %m\n", rootfs, mnt);
+        if (mount(rootfsDataPath.data(), rootfsMountPath.data(), "ext4", MS_BIND, ""))
+            die("Failed to mount %s at %s: %m\n", rootfsDataPath.data(), rootfsMountPath.data());
 
-        if (chdir(mnt))
-            die("Failed to chdir to rootfs mounted at %s: %m\n", mnt);
+        if (chdir(rootfsMountPath.data()))
+            die("Failed to chdir to rootfs mounted at %s: %m\n", rootfsMountPath.data());
 
         const char *put_old = ".put_old";
         if (mkdir(put_old, 0777) && errno != EEXIST)
             die("Failed to mkdir put_old %s: %m\n", put_old);
 
         if (syscall(SYS_pivot_root, ".", put_old))
-            die("Failed to pivot_root from %s to %s: %m\n", rootfs, put_old);
+            die("Failed to pivot_root from %s to %s: %m\n", rootfsMountPath.data(), put_old);
 
         if (chdir("/"))
             die("Failed to chdir to new root: %m\n");

@@ -23,6 +23,12 @@ void Runner::addHook(Hook hook, std::function<void(pid_t)> func) {
     hooks.emplace_back(hook, std::move(func));
 }
 
+static int runChildHelper(void* arg) {
+    auto runner = *((Runner*)arg);
+    runner.child();
+    return 1;
+}
+
 void Runner::runImpl() {
     if (pipe2(errorReportPipe, O_CLOEXEC) == -1) {
         throw std::runtime_error{"pipe2() failed"};
@@ -32,13 +38,10 @@ void Runner::runImpl() {
     ss << "/sandbox_sync_" << getpid();
     syncName = ss.str();
     sync = sem_open(syncName.c_str(), O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, 0);
-    /*???
-    int clone_flags =
-        SIGCHLD |
-        CLONE_NEWUTS | CLONE_NEWUSER |
-        CLONE_NEWNS | CLONE_NEWPID;
-    static char cmd_stack[STACKSIZE];
-    pid = clone(child, cmd_stack + STACKSIZE, clone_flags, &params);*/
+     // CLONE_NEWPID
+//    int clone_flags = SIGCHLD | CLONE_NEWUTS | CLONE_NEWUSER |CLONE_NEWPID;
+//    static char cmd_stack[STACKSIZE];
+//    pid = clone(runChildHelper, cmd_stack + STACKSIZE, clone_flags, this);
     pid = fork();
     if (pid < 0) {
         throw std::runtime_error{"fork() failed"};
