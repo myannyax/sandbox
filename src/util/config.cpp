@@ -1,3 +1,5 @@
 #include "config.h"
 
-YamlConfig::YamlConfig(const std::string &config_path) : config(YAML::LoadFile(config_path)) {}
+void YamlConfig::init(const std::string &config_path) {
+    config = YAML::LoadFile(config_path);
+}

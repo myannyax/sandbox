@@ -7,7 +7,7 @@ class YamlConfig {
 private:
     YAML::Node config;
 public:
-    explicit YamlConfig(const std::string& config_path);
+    void init(const std::string& config_path);
 
     template <class T>
     std::optional<T> get(const std::string& option_name) const;
