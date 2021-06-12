@@ -70,6 +70,8 @@ void Runner::cleanup() {
         sync = nullptr;
         sem_unlink(syncName.c_str());
     }
+
+    callHook(Hook::Cleanup);
 }
 
 void Runner::callHook(Hook hook) const {

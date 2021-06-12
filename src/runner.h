@@ -14,6 +14,7 @@ enum class Hook {
     Exec,
     ParentBeforeExec,
     ParentAfterExec,
+    Cleanup
 };
 
 class Runner {

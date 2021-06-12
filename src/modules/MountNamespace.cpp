@@ -2,11 +2,16 @@
 // Created by Maria.Filipanova on 6/9/21.
 //
 
-#include <iostream>
 #include "MountNamespace.h"
+#include <iostream>
+#include <filesystem>
 
-static const std::string rootfsDataPath = "rootfs";
+namespace fs = std::filesystem;
+
+static const std::string rootfsDataPath = "/";
 static const std::string rootfsMountPath = "rootfs";
+static const std::string upper = (fs::current_path() / ".upper");
+static const std::string work = (fs::current_path() / ".work");
 
 // TODO: change?
 static void die(const char *fmt, ...) {
@@ -21,7 +26,15 @@ void MountNamespace::apply(Runner &runner) {
     runner.addHook(Hook::BeforeExec, [&](pid_t) {
         std::cout << getuid();
 
-        if (mount(rootfsDataPath.data(), rootfsMountPath.data(), nullptr, MS_BIND, ""))
+        if (mkdir(upper.data(), 0777) && errno != EEXIST)
+            die("Failed to mkdir put_old %s: %m\n", upper.data());
+
+        if (mkdir(work.data(), 0777) && errno != EEXIST)
+            die("Failed to mkdir put_old %s: %m\n", work.data());
+
+        std::stringstream ss;
+        ss << "lowerdir=" << rootfsDataPath << ",upperdir=" << upper << ",workdir=" << work;
+        if (mount("overlay", rootfsMountPath.data(), "overlay", 0, ss.str().data()))
             die("Failed to mount %s at %s: %m\n", rootfsDataPath.data(), rootfsMountPath.data());
 
         if (chdir(rootfsMountPath.data()))
@@ -46,14 +59,14 @@ void MountNamespace::apply(Runner &runner) {
         if (umount2(put_old, MNT_DETACH))
             die("Failed to umount put_old %s: %m\n", put_old);
 
-        // TODO: understand that this is & change probably but I haven't watch lecture about this yet
-        // Assuming, 0 in the current namespace maps to
-        // a non-privileged UID in the parent namespace,
-        // drop superuser privileges if any by enforcing
-        // the exec'ed process runs with UID 0.
         if (setgid(0) == -1)
             die("Failed to setgid: %m\n");
         if (setuid(0) == -1)
             die("Failed to setuid: %m\n");
+    });
+
+    runner.addHook(Hook::Cleanup, [&](pid_t) {
+        std::filesystem::remove_all(upper);
+        std::filesystem::remove_all(work);
     });
 }
