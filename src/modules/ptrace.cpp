@@ -53,6 +53,11 @@ void PtraceModule::apply(Runner& runner) {
         ptrace(PTRACE_TRACEME, 0, nullptr, nullptr);
     });
 
+    runner.addHook(Hook::ParentBeforeExec, [](pid_t) {
+        signal(SIGTSTP, SIG_IGN);
+        signal(SIGQUIT, SIG_IGN);
+    });
+
     runner.addHook(Hook::ParentAfterExec, [this](pid_t origPid) {
         std::unordered_map<pid_t, ProcessState> states;
         states.emplace(origPid, origPid);
