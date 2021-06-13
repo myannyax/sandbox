@@ -11,12 +11,12 @@ void ExecModule::apply(Runner& runner) {
         argvp.push_back(nullptr);
 
         if (inheritEnv) {
-            execv(exe.data(), argvp.data());
+            execvp(exe.data(), argvp.data());
         } else {
             std::vector<char*> envp;
             for (auto& s : env) envp.push_back(s.data());
             envp.push_back(nullptr);
-            execve(exe.data(), argvp.data(), envp.data());
+            execvpe(exe.data(), argvp.data(), envp.data());
         }
 
         throw std::runtime_error{std::strerror(errno)};
