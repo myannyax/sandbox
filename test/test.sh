@@ -48,7 +48,9 @@ for p in "$@"; do
         set -e
         diff "$t_out/log.txt" "$b_out/log.txt"
         diff "$t_out/stdout.txt" "$b_out/stdout.txt"
-        diff "$t_out/stderr.txt" "$b_out/stderr.txt"
+        if [[ -f "$t_out/stderr.txt" ]]; then
+            diff "$t_out/stderr.txt" "$b_out/stderr.txt"
+        fi
     done
 
     cd ..

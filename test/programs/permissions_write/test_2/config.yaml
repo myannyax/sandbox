@@ -1,0 +1,5 @@
+fs:
+  - path: /
+    action: allow
+  - path: /tmp
+    action: deny
