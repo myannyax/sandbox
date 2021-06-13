@@ -1,0 +1,2 @@
+[INFO] Exit code: 0
+[FATAL] Terminate program: CPU time limit exceeded
