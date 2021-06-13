@@ -31,6 +31,9 @@ void ExecModule::apply(Runner& runner) {
             execvpe(exe.data(), argvp.data(), envp.data());
         }
 
-        throw std::runtime_error{std::strerror(errno)};
+        throw std::runtime_error{
+            std::string{"Failed to execute program: "} +
+            std::strerror(errno)
+        };
     });
 }

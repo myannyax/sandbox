@@ -136,7 +136,7 @@ void FilesystemModule::apply() {
     });
 }
 
-FilesystemAction FilesystemModule::getAction(const fs::path& path, pid_t pid) const {
+FilesystemAction FilesystemModule::getAction(const fs::path& path) const {
     for (const auto& rule : rules) {
         auto p = path;
         while (p != "" && p != "/") {
@@ -160,7 +160,7 @@ void FilesystemModule::handle(ProcessState& state, const fs::path& path, unsigne
         resolved = (cwd / path).lexically_normal();
     }
 
-    auto act = getAction(resolved, state.pid);
+    auto act = getAction(resolved);
     if (act == FilesystemAction::Deny) {
         state.syscall.result = -EACCES;
         std::stringstream ss;

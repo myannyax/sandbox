@@ -83,6 +83,12 @@ int main(int argc, char** argv) {
     limitsModule.apply(runner);
     priorityModule.apply(runner);
 
-    runner.run();
+    try {
+        runner.run();
+    } catch (std::exception& e) {
+        MultiprocessLog::log_fatal(e.what());
+        return 1;
+    }
+
     return ptraceModule.exitCode;
 }

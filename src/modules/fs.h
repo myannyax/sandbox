@@ -25,7 +25,7 @@ struct FilesystemModule {
     void apply();
 
 private:
-    FilesystemAction getAction(const std::filesystem::path& path, pid_t pid) const;
+    FilesystemAction getAction(const std::filesystem::path& path) const;
     void handle(ProcessState& state, const std::filesystem::path& path, unsigned flags) const;
     void handleAt(ProcessState& state, const std::filesystem::path& path, unsigned flags, int fd) const;
 };
