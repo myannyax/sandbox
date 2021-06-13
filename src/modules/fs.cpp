@@ -81,6 +81,31 @@ void FilesystemModule::apply() {
         handle(state, path, O_WRONLY);
     });
 
+    ptraceModule.onSyscall(SYS_rename, [&](ProcessState& state) {
+        fs::path path = state.readString((void*)state.syscall.args[0]);
+        handle(state, path, O_WRONLY);
+        path = state.readString((void*)state.syscall.args[1]);
+        handle(state, path, O_WRONLY);
+    });
+
+    ptraceModule.onSyscall(SYS_renameat, [&](ProcessState& state) {
+        int fd = state.syscall.args[0];
+        fs::path path = state.readString((void*)state.syscall.args[1]);
+        handleAt(state, path, O_WRONLY, fd);
+        fd = state.syscall.args[2];
+        path = state.readString((void*)state.syscall.args[3]);
+        handleAt(state, path, O_WRONLY, fd);
+    });
+
+    ptraceModule.onSyscall(SYS_renameat2, [&](ProcessState& state) {
+        int fd = state.syscall.args[0];
+        fs::path path = state.readString((void*)state.syscall.args[1]);
+        handleAt(state, path, O_WRONLY, fd);
+        fd = state.syscall.args[2];
+        path = state.readString((void*)state.syscall.args[3]);
+        handleAt(state, path, O_WRONLY, fd);
+    });
+
     ptraceModule.onSyscall(SYS_rmdir, [&](ProcessState& state) {
         fs::path path = state.readString((void*)state.syscall.args[0]);
         handle(state, path, O_WRONLY);
@@ -138,12 +163,16 @@ void FilesystemModule::apply() {
 
 FilesystemAction FilesystemModule::getAction(const fs::path& path) const {
     for (const auto& rule : rules) {
+        if (path == rule.path) {
+            return rule.action;
+        }
+
         auto p = path;
         while (p != "" && p != "/") {
+            p = p.parent_path();
             if (p == rule.path) {
                 return rule.action;
             }
-            p = p.parent_path();
         }
     }
     

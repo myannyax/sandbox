@@ -1,0 +1,3 @@
+fs:
+  - path: /tmp
+    action: readonly

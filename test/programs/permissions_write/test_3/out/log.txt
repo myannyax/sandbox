@@ -1,0 +1,3 @@
+[INFO] Restricted access to "/tmp/1" because of Readonly rule
+[INFO] Permission denied while trying to perform system call openat
+[INFO] Exit code: 1
