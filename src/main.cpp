@@ -62,8 +62,8 @@ int main(int argc, char** argv) {
         }
     });
 
-    UserNamespace userNamespaceModule;
-    MountNamespace mountNamespaceModule;
+    UserNamespace userNamespaceModule{config};
+    MountNamespace mountNamespaceModule{config};
     LimitsModule limitsModule{config, ptraceModule};
     PriorityModule priorityModule{config, ptraceModule};
     FilesystemModule filesystemModule{config, ptraceModule, {}};

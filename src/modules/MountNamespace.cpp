@@ -12,43 +12,45 @@ static const std::string rootfsDataPath = "/";
 static const std::string rootfsMountPath = ".rootfs";
 static std::string upper = ".upper";
 static std::string work = ".work";
+static std::string put_old = ".put_old";
 
 void MountNamespace::apply(Runner &runner) {
     upper = (fs::current_path() / upper);
     work = (fs::current_path() / work);
+    auto mount_root = config.get<bool>("mount_root");
 
     runner.addHook(Hook::BeforeExec, [&](pid_t) {
         auto curDir = std::filesystem::current_path();
+        if (mount_root) {
+            if (mkdir(upper.data(), 0777) && errno != EEXIST) {
+                throw std::runtime_error{"Failed to mkdir upper"};
+            }
 
-        if (mkdir(upper.data(), 0777) && errno != EEXIST) {
-            throw std::runtime_error{"Failed to mkdir upper"};
-        }
+            if (mkdir(work.data(), 0777) && errno != EEXIST) {
+                throw std::runtime_error{"Failed to mkdir work"};
+            }
 
-        if (mkdir(work.data(), 0777) && errno != EEXIST) {
-            throw std::runtime_error{"Failed to mkdir work"};
-        }
+            if (mkdir(rootfsMountPath.data(), 0777) && errno != EEXIST) {
+                throw std::runtime_error{"Failed to mkdir rootfsMountPath"};
+            }
 
-        if (mkdir(rootfsMountPath.data(), 0777) && errno != EEXIST) {
-            throw std::runtime_error{"Failed to mkdir rootfsMountPath"};
-        }
+            std::stringstream ss;
+            ss << "lowerdir=" << rootfsDataPath << ",upperdir=" << upper << ",workdir=" << work;
+            if (mount("overlay", rootfsMountPath.data(), "overlay", 0, ss.str().data())) {
+                throw std::runtime_error{"Failed to mount overlayfs"};
+            }
 
-        std::stringstream ss;
-        ss << "lowerdir=" << rootfsDataPath << ",upperdir=" << upper << ",workdir=" << work;
-        if (mount("overlay", rootfsMountPath.data(), "overlay", 0, ss.str().data())) {
-            throw std::runtime_error{"Failed to mount overlayfs"};
-        }
+            if (chdir(rootfsMountPath.data())) {
+                throw std::runtime_error{"Failed to chdir to rootfsMountPath"};
+            }
 
-        if (chdir(rootfsMountPath.data())) {
-            throw std::runtime_error{"Failed to chdir to rootfsMountPath"};
-        }
+            if (mkdir(put_old.data(), 0777) && errno != EEXIST) {
+                throw std::runtime_error{"Failed to mkdir put_old"};
+            }
 
-        const char *put_old = ".put_old";
-        if (mkdir(put_old, 0777) && errno != EEXIST) {
-            throw std::runtime_error{"Failed to mkdir put_old"};
-        }
-
-        if (syscall(SYS_pivot_root, ".", put_old)) {
-            throw std::runtime_error{"Failed to pivot_root"};
+            if (syscall(SYS_pivot_root, ".", put_old.data())) {
+                throw std::runtime_error{"Failed to pivot_root"};
+            }
         }
 
         if (mkdir("/proc", 0555) && errno != EEXIST) {
@@ -59,8 +61,10 @@ void MountNamespace::apply(Runner &runner) {
             throw std::runtime_error{"Failed to mount /proc"};
         }
 
-        if (umount2(put_old, MNT_DETACH)) {
-            throw std::runtime_error{"Failed to umount put_old"};
+        if (mount_root) {
+            if (umount2(put_old.data(), MNT_DETACH)) {
+                throw std::runtime_error{"Failed to umount put_old"};
+            }
         }
 
         if (setgid(0) == -1) {
@@ -71,8 +75,10 @@ void MountNamespace::apply(Runner &runner) {
             throw std::runtime_error{"Failed to setuid"};
         }
 
-        if (chdir(curDir.c_str())) {
-            throw std::runtime_error{"Failed to chdir to old cwd"};
+        if (mount_root) {
+            if (chdir(curDir.c_str())) {
+                throw std::runtime_error{"Failed to chdir to old cwd"};
+            }
         }
     });
 
