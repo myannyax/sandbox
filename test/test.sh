@@ -29,6 +29,12 @@ for p in *; do
     cmake .. >/dev/null 2>/dev/null
     make >/dev/null 2>/dev/null
 
+    if [ -z "$(ls .. | grep test_*)" ]; then
+        cd ..
+        cd ..
+        continue
+    fi
+
     for t in ../test_*; do
         t_out="$t/out"
         bt="$(basename "$t")"

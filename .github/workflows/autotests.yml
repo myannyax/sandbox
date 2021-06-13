@@ -20,7 +20,7 @@ jobs:
         env:
           CC:   gcc-10
           CXX:  g++-10
-      - name: test
+      - name: Run tests
         run: ./test/test.sh
         env:
           CC: gcc-10
