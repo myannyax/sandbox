@@ -10,6 +10,7 @@ pushd "$(dirname "$0")" >/dev/null
             signals signals_child \
             stackoverflow stackoverflow_child \
             timeout timeout_child \
-            timeout_cpu timeout_cpu_child timeout_cpu_prlimit timeout_cpu_signal_handler
+            timeout_cpu timeout_cpu_child timeout_cpu_prlimit timeout_cpu_signal_handler \
+            move
 
 popd > /dev/null
