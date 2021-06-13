@@ -6,6 +6,6 @@
 struct ForkModule {
     PtraceModule& ptraceModule;
     const YamlConfig& config;
-    int fork_limit = config.get<int>("fork_limit", 10);
+    int fork_limit = config.get<int>("fork_limit", -1);
     void apply();
 };
