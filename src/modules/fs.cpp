@@ -1,4 +1,5 @@
 #include "fs.h"
+#include "util/log.h"
 
 #include <sys/syscall.h>
 #include <sys/stat.h>
@@ -136,19 +137,8 @@ void FilesystemModule::apply() {
 }
 
 FilesystemAction FilesystemModule::getAction(const fs::path& path, pid_t pid) const {
-    fs::path x = path;
-
-    if (path.is_relative()) {
-        std::stringstream ss;
-        ss << "/proc/" << pid << "/cwd";
-        auto cwd = readLink(ss.str());
-        x = (cwd / path).lexically_normal();
-    }
-
-//    std::cerr << "getAction: " << x << std::endl;
-
     for (const auto& rule : rules) {
-        auto p = x;
+        auto p = path;
         while (p != "" && p != "/") {
             if (p == rule.path) {
                 return rule.action;
@@ -161,14 +151,29 @@ FilesystemAction FilesystemModule::getAction(const fs::path& path, pid_t pid) co
 }
 
 void FilesystemModule::handle(ProcessState& state, const fs::path& path, unsigned flags) const {
-//    std::cerr << "handle: " << path << std::endl;
-    auto act = getAction(path, state.pid);
+    fs::path resolved = path;
+
+    if (path.is_relative()) {
+        std::stringstream ss;
+        ss << "/proc/" << state.pid << "/cwd";
+        auto cwd = readLink(ss.str());
+        resolved = (cwd / path).lexically_normal();
+    }
+
+    auto act = getAction(resolved, state.pid);
     if (act == FilesystemAction::Deny) {
         state.syscall.result = -EACCES;
+        std::stringstream ss;
+        ss << "Restricted access to " << resolved << " because of Deny rule";
+        MultiprocessLog::log_info(ss.str());
     }
+
     if (flags & (O_CREAT | O_RDWR | O_WRONLY)) { 
         if (act != FilesystemAction::Allow) {
             state.syscall.result = -EACCES;
+            std::stringstream ss;
+            ss << "Restricted access to " << resolved << " because of Readonly rule";
+            MultiprocessLog::log_info(ss.str());
         }
     }
 }

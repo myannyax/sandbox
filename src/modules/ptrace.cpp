@@ -1,4 +1,6 @@
 #include "ptrace.h"
+#include "util/log.h"
+#include "util/syscall_numbers.h"
 
 #include <sstream>
 #include <stdexcept>
@@ -134,6 +136,12 @@ void PtraceModule::onTrap(ProcessState& state) {
         if (state.syscall.result) {
             ptrace(PTRACE_POKEUSER, state.pid, sizeof(long) * RAX, (void*)(state.syscall.result));
             state.syscall.result = 0;
+        }
+        long retval = ptrace(PTRACE_PEEKUSER, state.pid, sizeof(long) * RAX, nullptr);
+        if (retval == -EPERM || retval == -EACCES) {
+            if (state.syscall.nr >= 0 && state.syscall.nr < (int)syscallNumbers().size()) {
+                MultiprocessLog::log_info("Permission denied while trying to perform system call " + syscallNumbers()[state.syscall.nr]);
+            }
         }
         return;
     }
