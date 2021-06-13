@@ -81,6 +81,31 @@ void FilesystemModule::apply() {
         handle(state, path, O_WRONLY);
     });
 
+    ptraceModule.onSyscall(SYS_rename, [&](ProcessState& state) {
+        fs::path path = state.readString((void*)state.syscall.args[0]);
+        handle(state, path, O_WRONLY);
+        path = state.readString((void*)state.syscall.args[1]);
+        handle(state, path, O_WRONLY);
+    });
+
+    ptraceModule.onSyscall(SYS_renameat, [&](ProcessState& state) {
+        int fd = state.syscall.args[0];
+        fs::path path = state.readString((void*)state.syscall.args[1]);
+        handleAt(state, path, O_WRONLY, fd);
+        fd = state.syscall.args[2];
+        path = state.readString((void*)state.syscall.args[3]);
+        handleAt(state, path, O_WRONLY, fd);
+    });
+
+    ptraceModule.onSyscall(SYS_renameat2, [&](ProcessState& state) {
+        int fd = state.syscall.args[0];
+        fs::path path = state.readString((void*)state.syscall.args[1]);
+        handleAt(state, path, O_WRONLY, fd);
+        fd = state.syscall.args[2];
+        path = state.readString((void*)state.syscall.args[3]);
+        handleAt(state, path, O_WRONLY, fd);
+    });
+
     ptraceModule.onSyscall(SYS_rmdir, [&](ProcessState& state) {
         fs::path path = state.readString((void*)state.syscall.args[0]);
         handle(state, path, O_WRONLY);
