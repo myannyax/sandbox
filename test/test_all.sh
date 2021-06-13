@@ -4,6 +4,10 @@ set -e
 
 pushd "$(dirname "$0")" >/dev/null
 
-"./test.sh" memory_limit permissions_read permissions_write signal signal_child
+"./test.sh" memory_limit memory_limit_child niceness \
+            niceness \
+            permissions_read permissions_write \
+            signal signal_child \
+            timeout timeout_child
 
 popd > /dev/null
