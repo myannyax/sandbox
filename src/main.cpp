@@ -74,11 +74,11 @@ int main(int argc, char** argv) {
     execModule.apply(runner);
     ptraceModule.apply(runner);
 
-    if (config.config["user_namespace"].as<bool>()) {
+    if (config.get<bool>("user_namespace", false)) {
         userNamespaceModule.apply(runner);
     }
 
-    if (config.config["mount_namespace"].as<bool>()) {
+    if (config.get<bool>("mount_namespace", false)) {
         mountNamespaceModule.apply(runner);
     }
 

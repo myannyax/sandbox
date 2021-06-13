@@ -20,7 +20,7 @@ static fs::path readLink(const std::string& s) {
 }
 
 void FilesystemModule::apply() {
-    if (!config.config["fs"].IsSequence()) {
+    if (!config.config["fs"] || !config.config["fs"].IsSequence()) {
         return;
     }
 
