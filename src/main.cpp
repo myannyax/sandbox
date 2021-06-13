@@ -7,6 +7,7 @@
 #include "modules/MountNamespace.h"
 #include "modules/limit.h"
 #include "modules/priority.h"
+#include "modules/fork.h"
 #include "util/log.h"
 
 #include <string>
@@ -64,6 +65,7 @@ int main(int argc, char** argv) {
 
     UserNamespace userNamespaceModule{config};
     MountNamespace mountNamespaceModule{config};
+    ForkModule forkModule{ptraceModule, config};
     LimitsModule limitsModule{config, ptraceModule};
     PriorityModule priorityModule{config, ptraceModule};
     FilesystemModule filesystemModule{config, ptraceModule, {}};
@@ -82,6 +84,7 @@ int main(int argc, char** argv) {
 
     limitsModule.apply(runner);
     priorityModule.apply(runner);
+    forkModule.apply();
 
     try {
         runner.run();
