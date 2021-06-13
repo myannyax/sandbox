@@ -1,2 +1,2 @@
-[INFO] Permission denied while trying to perform system call kill
 [INFO] Exit code: 0
+[INFO] Permission denied while trying to perform system call kill
