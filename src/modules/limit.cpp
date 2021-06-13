@@ -10,6 +10,8 @@
 
 void LimitsModule::apply(Runner &runner) {
     runner.addHook(Hook::ParentBeforeExec, [&](pid_t pid) {
+        origPid = pid;
+
         auto set_limit = [&](const std::string& limit_name, __rlimit_resource resource, rlim_t limit_value) {
             struct rlimit old_limit{};
             struct rlimit new_limit{};
@@ -49,26 +51,27 @@ void LimitsModule::apply(Runner &runner) {
         if (max_cpu_time > 0) {
             set_limit("CPU time", RLIMIT_CPU, max_cpu_time);
         }
-        ptraceModule.onStop(SIGXCPU, [](ProcessState& state) {
-            MultiprocessLog::log_fatal(
-                "Terminate program: CPU time limit exceeded"
-            );
-            state.quit = true;
-        });
-
-        auto max_time = parse_time(config.get<std::string>("max_time", "0"));
-        if (max_time > 0) {
-            runner.addHook(Hook::BeforeExec, [max_time](pid_t) {
-                alarm(max_time);
-            });
-            ptraceModule.onStop(SIGALRM, [pid](ProcessState& state) {
-                if (pid == state.pid) {
-                    MultiprocessLog::log_fatal(
-                        "Terminate program: time limit exceeded"
-                    );
-                    state.quit = true;
-                }
-            });
-        }
     });
+
+    ptraceModule.onStop(SIGXCPU, [](ProcessState& state) {
+        MultiprocessLog::log_fatal(
+            "Terminate program: CPU time limit exceeded"
+        );
+        state.quit = true;
+    });
+
+    auto max_time = parse_time(config.get<std::string>("max_time", "0"));
+    if (max_time > 0) {
+        runner.addHook(Hook::BeforeExec, [max_time](pid_t) {
+            alarm(max_time);
+        });
+        ptraceModule.onStop(SIGALRM, [&](ProcessState& state) {
+            if (origPid == state.pid) {
+                MultiprocessLog::log_fatal(
+                    "Terminate program: time limit exceeded"
+                );
+                state.quit = true;
+            }
+        });
+    }
 }
