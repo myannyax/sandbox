@@ -1,6 +1,7 @@
 #include "ptrace.h"
 #include "util/config.h"
 
+#include <sys/syscall.h>
 
 struct ForkModule {
     PtraceModule& ptraceModule;
