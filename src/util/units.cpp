@@ -1,12 +1,12 @@
 #include "units.h"
 
-#include <cctype>
+#include <locale>
 #include <sstream>
 
 namespace {
     void to_lower(std::string& str) {
-        std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c){
-            return std::tolower(c);
+        std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c) {
+            return std::isalpha(c, std::locale{"C"}) ? std::tolower(c) : c; // здоровья погибшим
         });
     }
 }
