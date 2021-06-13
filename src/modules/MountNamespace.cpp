@@ -17,9 +17,7 @@ static std::string put_old = ".put_old";
 void MountNamespace::apply(Runner &runner) {
     upper = (fs::current_path() / upper);
     work = (fs::current_path() / work);
-    auto mount_root = config.config["mount_root"].as<bool>();
     int flags = CLONE_NEWNS;
-    auto pid_ns = config.config["pid_namespace"].as<bool>();
     if (pid_ns) {
         flags |= CLONE_NEWPID;
     }

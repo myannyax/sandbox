@@ -1,8 +1,9 @@
 max_stack: 1Mb
 max_data: 10GB
 #max_time: 2s
-mount_namespace: false
-user_namespace: false
+mount_namespace: true
+user_namespace: true
+pid_namespace: true
 mount_root: false
 
 fs:
