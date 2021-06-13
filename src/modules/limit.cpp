@@ -46,16 +46,6 @@ void LimitsModule::apply(Runner &runner) {
         if (max_memory > 0) {
             set_limit("memory", RLIMIT_AS, max_memory);
         }
-
-        auto max_cpu_time = parse_time(config.get<std::string>("max_cpu_time", "0"));
-        if (max_cpu_time > 0) {
-            set_limit("CPU time", RLIMIT_CPU, max_cpu_time);
-        }
-    });
-
-    ptraceModule.onStop(SIGXCPU, [](ProcessState& state) {
-        MultiprocessLog::log_fatal("Terminate program: CPU time limit exceeded");
-        state.quit = true;
     });
 
     auto max_time = parse_time(config.get<std::string>("max_time", "0"));
