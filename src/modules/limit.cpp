@@ -2,7 +2,6 @@
 #include "../util/units.h"
 #include "../util/log.h"
 
-#include <cmath>
 #include <csignal>
 #include <sys/resource.h>
 #include <iostream>
@@ -21,8 +20,7 @@ void LimitsModule::apply(Runner &runner) {
                 };
             }
             if (old_limit.rlim_max > limit_value) {
-                new_limit.rlim_cur = limit_value;
-                new_limit.rlim_max = RLIM_INFINITY;
+                new_limit.rlim_cur = new_limit.rlim_max = limit_value;
                 if (prlimit(pid, resource, &new_limit, nullptr) != 0) {
                     throw std::runtime_error{
                         "Failed to set " + limit_name + " limit of process " + std::to_string(pid)
@@ -52,7 +50,7 @@ void LimitsModule::apply(Runner &runner) {
             set_limit("CPU time", RLIMIT_CPU, max_cpu_time);
         }
         ptraceModule.onStop(SIGXCPU, [](ProcessState& state) {
-            MultiprocessLog::log(
+            MultiprocessLog::log_fatal(
                 "Terminate program: CPU time limit exceeded"
             );
             state.quit = true;
@@ -65,7 +63,7 @@ void LimitsModule::apply(Runner &runner) {
             });
             ptraceModule.onStop(SIGALRM, [pid](ProcessState& state) {
                 if (pid == state.pid) {
-                    MultiprocessLog::log(
+                    MultiprocessLog::log_fatal(
                         "Terminate program: time limit exceeded"
                     );
                     state.quit = true;

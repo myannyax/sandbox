@@ -5,6 +5,7 @@
 #include "modules/UserNamespace.h"
 #include "modules/MountNamespace.h"
 #include "modules/limit.h"
+#include "modules/priority.h"
 #include "util/log.h"
 
 #include <string>
@@ -62,13 +63,15 @@ int main(int argc, char** argv) {
 
     UserNamespace userNamespaceModule;
     MountNamespace mountNamespaceModule;
-    LimitsModule memoryLimitsModule{config, ptraceModule};
+    LimitsModule limitsModule{config, ptraceModule};
+    PriorityModule priorityModule{config, ptraceModule};
 
     execModule.apply(runner);
     ptraceModule.apply(runner);
     userNamespaceModule.apply(runner);
     mountNamespaceModule.apply(runner);
-    memoryLimitsModule.apply(runner);
+    limitsModule.apply(runner);
+    priorityModule.apply(runner);
 
     runner.run();
     return ptraceModule.exitCode;

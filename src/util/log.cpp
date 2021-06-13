@@ -38,7 +38,7 @@ void MultiprocessLog::close() {
     }
 }
 
-void MultiprocessLog::log(const std::string &message) {
+void MultiprocessLog::log_impl(const std::string &message) {
     pthread_mutex_lock(mutex);
     if (!filename.empty()) {
         std::ofstream os;
@@ -49,4 +49,16 @@ void MultiprocessLog::log(const std::string &message) {
         std::cout << message << "\n";
     }
     pthread_mutex_unlock(mutex);
+}
+
+void MultiprocessLog::log_info(const std::string &message) {
+    log_impl("[INFO] " + message);
+}
+
+void MultiprocessLog::log_error(const std::string &message) {
+    log_impl("[ERROR] " + message);
+}
+
+void MultiprocessLog::log_fatal(const std::string &message) {
+    log_impl("[FATAL] " + message);
 }
