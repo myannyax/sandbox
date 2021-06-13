@@ -56,12 +56,6 @@ int main(int argc, char** argv) {
     execModule.argv = parse_result.unmatched();
 
     PtraceModule ptraceModule;
-    ptraceModule.onSyscall(SYS_kill, [&](ProcessState& state) {
-        auto sig = state.syscall.args[1];
-        if (sig == SIGTRAP) {
-            state.syscall.result = -EPERM;
-        }
-    });
 
     UserNamespace userNamespaceModule{config};
     MountNamespace mountNamespaceModule{config};
