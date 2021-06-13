@@ -17,7 +17,7 @@ static std::string put_old = ".put_old";
 void MountNamespace::apply(Runner &runner) {
     upper = (fs::current_path() / upper);
     work = (fs::current_path() / work);
-    auto mount_root = config.get<bool>("mount_root");
+    auto mount_root = config.config["mount_root"].as<bool>();
 
     runner.addHook(Hook::BeforeExec, [&](pid_t) {
         auto curDir = std::filesystem::current_path();

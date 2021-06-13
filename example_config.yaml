@@ -3,6 +3,7 @@ max_data: 10GB
 #max_time: 2s
 mount_namespace: true
 user_namespace: true
+mount_root: false
 
 fs:
   - path: /home
@@ -11,4 +12,3 @@ fs:
     action: readonly
   - path: /
     action: allow
-    mount_root: false
