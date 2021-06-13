@@ -42,8 +42,9 @@ void Runner::runImpl() {
         return 0;
     }, stack + stackSize, unshareFlags, this);
 
+    free(stack);
+
     if (pid < 0) {
-        perror("fuck");
         throw std::runtime_error{"clone() failed"};
     }
 

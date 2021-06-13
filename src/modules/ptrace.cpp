@@ -40,7 +40,6 @@ std::string ProcessState::readString(void* addr, size_t maxSize) const {
             if (*c) {
                 res.push_back(*c);
             } else {
-//                std::cerr << "read " << res << std::endl;
                 return res;
             }
         }
@@ -57,6 +56,7 @@ void PtraceModule::apply(Runner& runner) {
     runner.addHook(Hook::ParentAfterExec, [this](pid_t origPid) {
         std::unordered_map<pid_t, ProcessState> states;
         states.emplace(origPid, origPid);
+        bool isPaused = false;
 
         while (!states.empty()) {
             int status;
@@ -96,7 +96,21 @@ void PtraceModule::apply(Runner& runner) {
                     // syscall
                     sig = 0;
                     onTrap(state);
+                } else if (sig == SIGTSTP) {
+                    // pause/resume [Ctrl + Z]
+                    sig = 0;
+                    isPaused = !isPaused;
+                    for (auto& [pid, _] : states) {
+                        kill(pid, isPaused ? SIGSTOP : SIGCONT);
+                    }
+                } else if (sig == SIGQUIT) {
+                    // kill [Ctrl + \]
+                    MultiprocessLog::log_info("Terminating process because of user's request");
+                    exitCode = 0;
+                    sig = 0;
+                    state.quit = true;
                 }
+
                 for (auto& [signal, handler] : signalHandlers) {
                     if (signal == sig) {
                         handler(state);
@@ -160,10 +174,8 @@ void PtraceModule::onTrap(ProcessState& state) {
         }
     }
     if (state.syscall.result) {
- //       std::cerr << "syscall by " << state.pid << " #" << state.syscall.nr << " denied\n";
         ptrace(PTRACE_POKEUSER, state.pid, sizeof(long) * ORIG_RAX, (void*)-1);
     } else {
-//        std::cerr << "syscall by " << state.pid << " #" << state.syscall.nr << " allowed\n";
         if (state.syscall.nr == SYS_execve) {
             state.inSyscall = false;
         }
