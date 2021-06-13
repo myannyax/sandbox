@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
     filesystemModule.apply();
 
     execModule.apply(runner);
-    ptraceModule.apply(runner);
+    ptraceModule.apply(runner, config);
 
     if (config.get<bool>("user_namespace", false)) {
         userNamespaceModule.apply(runner);
