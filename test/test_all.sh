@@ -9,6 +9,6 @@ pushd "$(dirname "$0")" >/dev/null
             permissions_read permissions_write \
             signals signals_child \
             timeout timeout_child \
-            timeout_cpu
+            timeout_cpu timeout_cpu_child timeout_cpu_prlimit timeout_cpu_signal_handler
 
 popd > /dev/null
