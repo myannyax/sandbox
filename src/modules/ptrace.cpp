@@ -48,20 +48,48 @@ std::string ProcessState::readString(void* addr, size_t maxSize) const {
     return res;
 }
 
+static std::unordered_map<pid_t, ProcessState> states;
+static bool isPaused = false;
+
+static void pauseUnpause() {
+    isPaused = !isPaused;
+
+    for (auto& [pid, _] : states) {
+        if (isPaused) {
+            kill(pid, SIGSTOP);
+        } else {
+            ptrace(PTRACE_SYSCALL, pid, NULL, 0);
+        }
+    }
+}
+
+static void stopSandbox() {
+    MultiprocessLog::log_info("Terminating process because of user's request");
+    for (auto& [pid, _] : states) {
+        kill(pid, SIGKILL);
+    }
+}
+
 void PtraceModule::apply(Runner& runner) {
     runner.addHook(Hook::BeforeExec, [](pid_t) {
         ptrace(PTRACE_TRACEME, 0, nullptr, nullptr);
     });
 
     runner.addHook(Hook::ParentBeforeExec, [](pid_t) {
-        signal(SIGTSTP, SIG_IGN);
-        signal(SIGQUIT, SIG_IGN);
+        signal(SIGTSTP, [](int) {
+            pauseUnpause();
+        });
+
+        signal(SIGQUIT, [](int) {
+            stopSandbox();
+        });
     });
 
     runner.addHook(Hook::ParentAfterExec, [this](pid_t origPid) {
-        std::unordered_map<pid_t, ProcessState> states;
+        states.clear();
         states.emplace(origPid, origPid);
-        bool isPaused = false;
+
+        exitCode = -1;
 
         while (!states.empty()) {
             int status;
@@ -101,19 +129,9 @@ void PtraceModule::apply(Runner& runner) {
                     // syscall
                     sig = 0;
                     onTrap(state);
-                } else if (sig == SIGTSTP) {
-                    // pause/resume [Ctrl + Z]
-                    sig = 0;
-                    isPaused = !isPaused;
-                    for (auto& [pid, _] : states) {
-                        kill(pid, isPaused ? SIGSTOP : SIGCONT);
-                    }
                 } else if (sig == SIGQUIT) {
-                    // kill [Ctrl + \]
-                    MultiprocessLog::log_info("Terminating process because of user's request");
-                    exitCode = 0;
                     sig = 0;
-                    state.quit = true;
+                    stopSandbox();
                 }
 
                 for (auto& [signal, handler] : signalHandlers) {
@@ -122,7 +140,7 @@ void PtraceModule::apply(Runner& runner) {
                     }
                 }
 
-                if (!state.quit) {
+                if (!state.quit && !isPaused) {
                     ptrace(PTRACE_SYSCALL, pid, NULL, sig);
                 }
             }
