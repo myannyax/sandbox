@@ -18,8 +18,12 @@ void MountNamespace::apply(Runner &runner) {
     upper = (fs::current_path() / upper);
     work = (fs::current_path() / work);
     auto mount_root = config.config["mount_root"].as<bool>();
-
-    runner.setUnshareFlags(CLONE_NEWNS | CLONE_NEWPID);
+    int flags = CLONE_NEWNS;
+    auto pid_ns = config.config["pid_namespace"].as<bool>();
+    if (pid_ns) {
+        flags |= CLONE_NEWPID;
+    }
+    runner.setUnshareFlags(flags);
 
     runner.addHook(Hook::BeforeExec, [&](pid_t) {
         auto curDir = std::filesystem::current_path();
@@ -55,12 +59,15 @@ void MountNamespace::apply(Runner &runner) {
             }
         }
 
-        if (mkdir("/proc", 0555) && errno != EEXIST) {
-            throw std::runtime_error{"Failed to mkdir /proc"};
-        }
+        if (pid_ns) {
 
-        if (mount("proc", "/proc", "proc", 0, "")) {
-            throw std::runtime_error{"Failed to mount /proc"};
+            if (mkdir("/proc", 0555) && errno != EEXIST) {
+                throw std::runtime_error{"Failed to mkdir /proc"};
+            }
+
+            if (mount("proc", "/proc", "proc", 0, "")) {
+                throw std::runtime_error{"Failed to mount /proc"};
+            }
         }
 
         if (mount_root) {

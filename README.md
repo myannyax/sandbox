@@ -30,3 +30,4 @@
 | niceness | приоритет процесса | N/A |
 | user_namespace | создавать user namespace | false |
 | mount_namespace | создавать mount namespace (нужен user namespace) | false |
+| pid_namespace | создавать pid namespace (нужен mount namespace) | false |
