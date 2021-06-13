@@ -14,9 +14,8 @@ jobs:
           mkdir build
           cd build
 
-          cmake .. >/dev/null 2>/dev/null
-          make >/dev/null 2>/dev/null
-          cd ..
+          cmake ..
+          make
         env:
           CC:   gcc-10
           CXX:  g++-10
