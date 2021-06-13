@@ -1,21 +1,15 @@
 #include "UserNamespace.h"
 #include <stdexcept>
-
-#include <cstring>
+#include <iostream>
+#include <fstream>
 #include <unistd.h>
 
-static void writeToFile(const char *path, const char *line) {
-    FILE *f = fopen(path, "w");
-
-    if (f == NULL) {
-        throw std::runtime_error{"Failed to open file " + std::string(path)};
-    }
-
-    if (fwrite(line, 1, strlen(line), f) == 0) {
-        throw std::runtime_error{"Failed to write to file " + std::string(path)};
-    }
-
-    fclose(f);
+static void writeToFile(const std::string &path, const std::string &line) {
+    std::ofstream file;
+    file.exceptions(std::ofstream::failbit | std::ofstream::badbit);
+    file.open(path);
+    file << line;
+    file.close();
 }
 
 void UserNamespace::apply(Runner &runner) {
