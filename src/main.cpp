@@ -68,8 +68,15 @@ int main(int argc, char** argv) {
 
     execModule.apply(runner);
     ptraceModule.apply(runner);
-    userNamespaceModule.apply(runner);
-    mountNamespaceModule.apply(runner);
+
+    if (config.get<bool>("user_namespace")) {
+        userNamespaceModule.apply(runner);
+    }
+
+    if (config.get<bool>("mount_namespace")) {
+        mountNamespaceModule.apply(runner);
+    }
+
     limitsModule.apply(runner);
     priorityModule.apply(runner);
 

@@ -1,3 +1,5 @@
 max_stack: 1Mb
 max_data: 10GB
-max_time: 2s
+#max_time: 2s
+mount_namespace: false
+user_namespace: true
