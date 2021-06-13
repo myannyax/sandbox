@@ -61,7 +61,6 @@ void PtraceModule::apply(Runner& runner) {
         while (!states.empty()) {
             int status;
             auto pid = wait(&status);
-//            std::cerr << "wait: " << pid << std::endl;
             if (pid == -1) break;
             if (!states.contains(pid)) states.emplace(pid, pid);
             auto& state = states.at(pid);
