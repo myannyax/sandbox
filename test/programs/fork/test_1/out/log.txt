@@ -1,6 +1,2 @@
 [INFO] Permission denied while trying to perform system call fork
-[INFO] Permission denied while trying to perform system call fork
-[INFO] Permission denied while trying to perform system call fork
-[INFO] Permission denied while trying to perform system call fork
-[INFO] Permission denied while trying to perform system call fork
 [INFO] Exit code: 0

@@ -4,7 +4,8 @@ set -e
 
 pushd "$(dirname "$0")" >/dev/null
 
-"./test.sh" memory_limit memory_limit_child \
+"./test.sh" fork \
+            memory_limit memory_limit_child \
             niceness \
             permissions_read permissions_write \
             signals signals_child \
