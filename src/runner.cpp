@@ -42,7 +42,7 @@ void Runner::runImpl() {
     int clone_flags = SIGCHLD | CLONE_NEWUTS | CLONE_NEWUSER | CLONE_NEWNS | CLONE_NEWPID;
     static char cmd_stack[STACKSIZE];
     pid = clone(runChildHelper, cmd_stack + STACKSIZE, clone_flags, this);
-    //pid = fork();
+//    pid = fork();
     if (pid < 0) {
         throw std::runtime_error{"fork() failed"};
     }

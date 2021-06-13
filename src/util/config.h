@@ -3,10 +3,9 @@
 #include <optional>
 #include <yaml-cpp/yaml.h>
 
-class YamlConfig {
-private:
+struct YamlConfig {
     YAML::Node config;
-public:
+
     void init(const std::string& config_path);
 
     template <class T>

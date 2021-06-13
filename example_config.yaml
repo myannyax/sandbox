@@ -1,5 +1,13 @@
 max_stack: 1Mb
 max_data: 10GB
 #max_time: 2s
-mount_namespace: false
+mount_namespace: true
 user_namespace: true
+
+fs:
+  - path: /home
+    action: deny
+  - path: /tmp
+    action: readonly
+  - path: /
+    action: allow

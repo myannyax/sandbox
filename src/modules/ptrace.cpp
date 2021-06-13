@@ -38,6 +38,7 @@ std::string ProcessState::readString(void* addr, size_t maxSize) const {
             if (*c) {
                 res.push_back(*c);
             } else {
+//                std::cerr << "read " << res << std::endl;
                 return res;
             }
         }
@@ -58,6 +59,7 @@ void PtraceModule::apply(Runner& runner) {
         while (!states.empty()) {
             int status;
             auto pid = wait(&status);
+//            std::cerr << "wait: " << pid << std::endl;
             if (pid == -1) break;
             if (!states.contains(pid)) states.emplace(pid, pid);
             auto& state = states.at(pid);
@@ -151,6 +153,12 @@ void PtraceModule::onTrap(ProcessState& state) {
         }
     }
     if (state.syscall.result) {
+ //       std::cerr << "syscall by " << state.pid << " #" << state.syscall.nr << " denied\n";
         ptrace(PTRACE_POKEUSER, state.pid, sizeof(long) * ORIG_RAX, (void*)-1);
+    } else {
+//        std::cerr << "syscall by " << state.pid << " #" << state.syscall.nr << " allowed\n";
+        if (state.syscall.nr == SYS_execve) {
+            state.inSyscall = false;
+        }
     }
 }

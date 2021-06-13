@@ -14,6 +14,7 @@ add_executable(my_sandbox
     src/modules/UserNamespace.cpp
     src/modules/limit.cpp
     src/modules/priority.cpp
+    src/modules/fs.cpp
 )
 
 CPMAddPackage("gh:jarro2783/cxxopts#dd45a0801c99d62109aaa29f8c410ba8def2fbf2")

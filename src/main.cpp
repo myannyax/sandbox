@@ -2,6 +2,7 @@
 #include "util/config.h"
 #include "modules/exec.h"
 #include "modules/ptrace.h"
+#include "modules/fs.h"
 #include "modules/UserNamespace.h"
 #include "modules/MountNamespace.h"
 #include "modules/limit.h"
@@ -65,15 +66,17 @@ int main(int argc, char** argv) {
     MountNamespace mountNamespaceModule;
     LimitsModule limitsModule{config, ptraceModule};
     PriorityModule priorityModule{config, ptraceModule};
+    FilesystemModule filesystemModule{config, ptraceModule, {}};
+    filesystemModule.apply();
 
     execModule.apply(runner);
     ptraceModule.apply(runner);
 
-    if (config.get<bool>("user_namespace")) {
+    if (config.config["user_namespace"].as<bool>()) {
         userNamespaceModule.apply(runner);
     }
 
-    if (config.get<bool>("mount_namespace")) {
+    if (config.config["mount_namespace"].as<bool>()) {
         mountNamespaceModule.apply(runner);
     }
 
