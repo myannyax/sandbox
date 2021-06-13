@@ -12,6 +12,7 @@
 #include <sys/reg.h>
 #include <sys/syscall.h>
 #include <memory.h>
+#include <cstring>
 
 static void restrictProcess(pid_t pid) {
     ptrace(PTRACE_SETOPTIONS, pid, nullptr,
@@ -116,6 +117,7 @@ void PtraceModule::apply(Runner& runner) {
             if (WIFEXITED(status)) {
                 if (pid == origPid) {
                     exitCode = WEXITSTATUS(status);
+                    MultiprocessLog::log_info("Exit code: " + std::to_string(exitCode));
                 }
 
                 states.erase(pid);
@@ -125,6 +127,9 @@ void PtraceModule::apply(Runner& runner) {
             if (WIFSIGNALED(status)) {
                 if (pid == origPid) {
                     exitCode = -WTERMSIG(status);
+                    MultiprocessLog::log_info(
+                        "Process signaled: " + std::string(strsignal(WTERMSIG(status)))
+                    );
                 }
 
                 states.erase(pid);
@@ -156,7 +161,7 @@ void PtraceModule::apply(Runner& runner) {
             if (state.quit) {
                 kill(pid, SIGKILL);
                 states.erase(pid);
-                break; // Maybe we need to keep two flags: to kill one process or all processes
+                break;
             }
         }
 
