@@ -108,6 +108,7 @@ void PtraceModule::apply(Runner& runner) {
             if (state.quit) {
                 kill(pid, SIGKILL);
                 states.erase(pid);
+                break; // Maybe we need to keep two flags: to kill one process or all processes
             }
         }
 

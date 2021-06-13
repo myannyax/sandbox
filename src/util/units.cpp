@@ -1,7 +1,15 @@
 #include "units.h"
 
-#include <boost/algorithm/string/case_conv.hpp>
+#include <cctype>
 #include <sstream>
+
+namespace {
+    void to_lower(std::string& str) {
+        std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c){
+            return std::tolower(c);
+        });
+    }
+}
 
 int parse_time(const std::string &str) {
     std::istringstream is{str};
@@ -11,16 +19,14 @@ int parse_time(const std::string &str) {
     while (is >> t) {
         std::string unit;
         is >> unit;
-        boost::to_lower(unit);
+        to_lower(unit);
         int scale = 1;
-        if (unit == "s") {
-            scale = 1000;
-        } else if (unit == "m") {
-            scale = 60 * 1000;
+        if (unit == "m") {
+            scale = 60;
         } else if (unit == "h") {
-            scale = 60 * 60 * 1000;
+            scale = 60 * 60;
         } else if (unit == "d") {
-            scale = 24 * 60 * 60 * 1000;
+            scale = 24 * 60 * 60;
         }
         result += t * scale;
     }
@@ -35,7 +41,7 @@ int parse_memory_size(const std::string &str) {
     while (is >> s) {
         std::string unit;
         is >> unit;
-        boost::to_lower(unit);
+        to_lower(unit);
         int scale = 1;
         if (unit == "kb") {
             scale = 1024;

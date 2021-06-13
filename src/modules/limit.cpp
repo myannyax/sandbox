@@ -1,5 +1,6 @@
 #include "limit.h"
 #include "../util/units.h"
+#include "../util/log.h"
 
 #include <cmath>
 #include <csignal>
@@ -48,30 +49,28 @@ void LimitsModule::apply(Runner &runner) {
 
         auto max_cpu_time = parse_time(config.get<std::string>("max_cpu_time", "0"));
         if (max_cpu_time > 0) {
-            set_limit("CPU time", RLIMIT_CPU, std::ceil(max_cpu_time / 1000));
+            set_limit("CPU time", RLIMIT_CPU, max_cpu_time);
         }
+        ptraceModule.onStop(SIGXCPU, [](ProcessState& state) {
+            MultiprocessLog::log(
+                "Terminate program: CPU time limit exceeded"
+            );
+            state.quit = true;
+        });
 
         auto max_time = parse_time(config.get<std::string>("max_time", "0"));
         if (max_time > 0) {
-            auto timer_pid = fork();
-            if (timer_pid < 0) {
-                throw std::runtime_error{"fork() failed"};
-            }
-            if (timer_pid == 0) {
-                usleep(max_time * 1000);
-                std::cout << "Time limit exceeded" << std::endl;
-                kill(pid, SIGKILL);
-                exit(0);
-            } else {
-                runner.addHook(Hook::ParentAfterExec, [&](pid_t) {
-                   kill(timer_pid, SIGKILL);
-                });
-            }
+            runner.addHook(Hook::BeforeExec, [max_time](pid_t) {
+                alarm(max_time);
+            });
+            ptraceModule.onStop(SIGALRM, [pid](ProcessState& state) {
+                if (pid == state.pid) {
+                    MultiprocessLog::log(
+                        "Terminate program: time limit exceeded"
+                    );
+                    state.quit = true;
+                }
+            });
         }
-    });
-
-    ptraceModule.onStop(SIGXCPU, [&](ProcessState& state) {
-        std::cout << "CPU time limit exceeded" << std::endl;
-        state.quit = true;
     });
 }
