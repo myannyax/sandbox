@@ -4,21 +4,9 @@ set -e
 
 pushd "$(dirname "$0")" >/dev/null
 
-cd ..
-
-rm -rf build
-mkdir build
-cd build
-
-cmake .. >/dev/null 2>/dev/null
-make >/dev/null 2>/dev/null
-
-cd ..
-
-cd test
 cd programs
 
-for p in *; do
+for p in "$@"; do
     echo "$p"
     cd "$p"
 
@@ -26,8 +14,13 @@ for p in *; do
     mkdir build
     cd build
 
-    cmake .. >/dev/null 2>/dev/null
-    make >/dev/null 2>/dev/null
+    if [[ -f "../CMakeLists.txt" ]]; then
+        cmake .. >/dev/null 2>/dev/null
+        make >/dev/null 2>/dev/null
+        exe="./main"
+    else
+        exe="../run.sh"
+    fi
 
     if [ -z "$(ls .. | grep test_*)" ]; then
         cd ..
@@ -43,9 +36,15 @@ for p in *; do
         b_out="$bt/out"
         mkdir "$b_out"
 
+        if [[ -f "$t/prepare.sh" ]]; then
+            "$t/prepare.sh"
+        fi
         args="$(cat "$t/parameters.txt")"
         set +e
-        ../../../../build/my_sandbox ./main "$args" --config="$t/config.yaml" --log="$b_out/log.txt" >"$b_out/stdout.txt" 2>"$b_out/stderr.txt"
+        ../../../../build/my_sandbox $exe "$args" --config="$t/config.yaml" --log="$b_out/log.txt" >"$b_out/stdout.txt" 2>"$b_out/stderr.txt"
+        if [[ -f "$t/cleanup.sh" ]]; then
+            "$t/cleanup.sh"
+        fi
         set -e
         diff "$t_out/log.txt" "$b_out/log.txt"
         diff "$t_out/stdout.txt" "$b_out/stdout.txt"

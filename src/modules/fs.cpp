@@ -138,12 +138,16 @@ void FilesystemModule::apply() {
 
 FilesystemAction FilesystemModule::getAction(const fs::path& path) const {
     for (const auto& rule : rules) {
+        if (path == rule.path) {
+            return rule.action;
+        }
+
         auto p = path;
         while (p != "" && p != "/") {
+            p = p.parent_path();
             if (p == rule.path) {
                 return rule.action;
             }
-            p = p.parent_path();
         }
     }
     
