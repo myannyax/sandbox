@@ -1,0 +1,8 @@
+[INFO] Restricted access to "/tmp/1" because of Deny rule
+[INFO] Restricted access to "/tmp/1" because of Readonly rule
+[INFO] Restricted access to "/tmp/2" because of Deny rule
+[INFO] Restricted access to "/tmp/2" because of Readonly rule
+[INFO] Permission denied while trying to perform system call renameat2
+[INFO] Restricted access to "/tmp/2" because of Deny rule
+[INFO] Permission denied while trying to perform system call stat
+[INFO] Exit code: 1
