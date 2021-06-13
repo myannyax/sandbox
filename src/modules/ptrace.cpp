@@ -175,6 +175,7 @@ void PtraceModule::apply(Runner& runner, const YamlConfig& config) {
             }
 
             if (state.quit) {
+                MultiprocessLog::log_info("Process signaled: Killed");
                 kill(pid, SIGKILL);
                 states.erase(pid);
                 break;
