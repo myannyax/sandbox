@@ -9,6 +9,8 @@
 #include <fcntl.h>
 #include <signal.h>
 
+static const int stackSize = 1024 * 1024;
+
 void Runner::run() {
     try {
         runImpl();
@@ -23,12 +25,6 @@ void Runner::addHook(Hook hook, std::function<void(pid_t)> func) {
     hooks.emplace_back(hook, std::move(func));
 }
 
-static int runChildHelper(void* arg) {
-    auto runner = *((Runner*)arg);
-    runner.child();
-    return 1;
-}
-
 void Runner::runImpl() {
     if (pipe2(errorReportPipe, O_CLOEXEC) == -1) {
         throw std::runtime_error{"pipe2() failed"};
@@ -38,20 +34,20 @@ void Runner::runImpl() {
     ss << "/sandbox_sync_" << getpid();
     syncName = ss.str();
     sync = sem_open(syncName.c_str(), O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, 0);
-     // CLONE_NEWPID
-    int clone_flags = SIGCHLD | CLONE_NEWUTS | CLONE_NEWUSER | CLONE_NEWNS | CLONE_NEWPID;
-    static char cmd_stack[STACKSIZE];
-    pid = clone(runChildHelper, cmd_stack + STACKSIZE, clone_flags, this);
-//    pid = fork();
+
+    char* stack = (char*)malloc(stackSize);
+
+    pid = clone([](void* arg) {
+        ((Runner*)arg)->child();
+        return 0;
+    }, stack + stackSize, unshareFlags, this);
+
     if (pid < 0) {
-        throw std::runtime_error{"fork() failed"};
+        perror("fuck");
+        throw std::runtime_error{"clone() failed"};
     }
 
-    if (pid == 0) {
-        child();
-    } else {
-        parent();
-    }
+    parent();
 }
 
 void Runner::cleanup() {
@@ -114,4 +110,8 @@ void Runner::parent() {
     close(errorReportPipe[0]);
 
     callHook(Hook::ParentAfterExec);
+}
+
+void Runner::setUnshareFlags(unsigned long flags) {
+    unshareFlags |= flags;
 }

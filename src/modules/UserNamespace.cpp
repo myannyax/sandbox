@@ -11,7 +11,7 @@ static void writeToFile(const char *path, const char *line) {
         throw std::runtime_error{"Failed to open file " + std::string(path)};
     }
 
-    if (fwrite(line, 1, strlen(line), f) < 0) {
+    if (fwrite(line, 1, strlen(line), f) == 0) {
         throw std::runtime_error{"Failed to write to file " + std::string(path)};
     }
 
@@ -19,6 +19,8 @@ static void writeToFile(const char *path, const char *line) {
 }
 
 void UserNamespace::apply(Runner &runner) {
+    runner.setUnshareFlags(CLONE_NEWUSER);
+
     runner.addHook(Hook::ParentBeforeExec, [&](pid_t pid) {
         char path[100];
         char line[100];

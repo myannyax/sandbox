@@ -7,8 +7,6 @@
 #include <sys/types.h>
 #include <semaphore.h>
 
-#define STACKSIZE (1024*1024)
-
 enum class Hook {
     BeforeExec,
     Exec,
@@ -21,11 +19,11 @@ class Runner {
 public:
     void run();
     void addHook(Hook, std::function<void(pid_t)>);
+    void setUnshareFlags(unsigned long flags);
 
-    //internal
-    void child() noexcept;
 private:
     void parent();
+    void child() noexcept;
 
     void callHook(Hook hook) const;
     void cleanup();
@@ -33,6 +31,7 @@ private:
 
 private:
     pid_t pid;
+    unsigned long unshareFlags = 0;
     int errorReportPipe[2];
     sem_t* sync; // for synchronizing start of the child process
     std::string syncName;

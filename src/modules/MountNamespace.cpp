@@ -19,6 +19,8 @@ void MountNamespace::apply(Runner &runner) {
     work = (fs::current_path() / work);
     auto mount_root = config.config["mount_root"].as<bool>();
 
+    runner.setUnshareFlags(CLONE_NEWNS | CLONE_NEWPID);
+
     runner.addHook(Hook::BeforeExec, [&](pid_t) {
         auto curDir = std::filesystem::current_path();
         if (mount_root) {
