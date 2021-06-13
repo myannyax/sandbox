@@ -1,0 +1,2 @@
+[ERROR] Failed to set niceness to -20: Permission denied
+[INFO] Exit code: 0

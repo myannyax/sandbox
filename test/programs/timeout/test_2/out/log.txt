@@ -1,0 +1,2 @@
+[FATAL] Terminate program: time limit exceeded
+[INFO] Process signaled: Killed

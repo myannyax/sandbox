@@ -92,6 +92,13 @@ void PtraceModule::apply(Runner& runner) {
         signal(SIGQUIT, [](int) {
             stopSandbox();
         });
+
+        signal(SIGALRM, [](int) {
+            MultiprocessLog::log_fatal("Terminate program: time limit exceeded");
+            for (auto& [pid, _] : states) {
+                kill(pid, SIGKILL);
+            }
+        });
     });
 
     runner.addHook(Hook::ParentAfterExec, [this](pid_t origPid) {

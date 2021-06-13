@@ -54,24 +54,14 @@ void LimitsModule::apply(Runner &runner) {
     });
 
     ptraceModule.onStop(SIGXCPU, [](ProcessState& state) {
-        MultiprocessLog::log_fatal(
-            "Terminate program: CPU time limit exceeded"
-        );
+        MultiprocessLog::log_fatal("Terminate program: CPU time limit exceeded");
         state.quit = true;
     });
 
     auto max_time = parse_time(config.get<std::string>("max_time", "0"));
     if (max_time > 0) {
-        runner.addHook(Hook::BeforeExec, [max_time](pid_t) {
+        runner.addHook(Hook::ParentBeforeExec, [max_time](pid_t) {
             alarm(max_time);
-        });
-        ptraceModule.onStop(SIGALRM, [&](ProcessState& state) {
-            if (origPid == state.pid) {
-                MultiprocessLog::log_fatal(
-                    "Terminate program: time limit exceeded"
-                );
-                state.quit = true;
-            }
         });
     }
 }
