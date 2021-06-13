@@ -89,7 +89,7 @@ void PtraceModule::apply(Runner& runner) {
 
             if (WIFSTOPPED(status)) {
                 int sig = WSTOPSIG(status);
-                if (((status >> 8) & 0xff) == SIGTRAP) {
+                if (sig == SIGTRAP) {
                     // syscall
                     sig = 0;
                     onTrap(state);

@@ -12,6 +12,7 @@
 #include <cxxopts.hpp>
 #include <iostream>
 #include <syscall.h>
+#include <signal.h>
 
 int main(int argc, char** argv) {
     cxxopts::Options options{"my_sandbox", "Sandbox"};
@@ -53,12 +54,11 @@ int main(int argc, char** argv) {
     execModule.argv = parse_result.unmatched();
 
     PtraceModule ptraceModule;
-    ptraceModule.onSyscall(SYS_openat, [&](ProcessState& state) {
-        /*// as an example, forbid opening files from "/tmp"
-        auto path = state.readString((void*)state.syscall.args[1]);
-        if (path.starts_with("/tmp")) {
+    ptraceModule.onSyscall(SYS_kill, [&](ProcessState& state) {
+        auto sig = state.syscall.args[1];
+        if (sig == SIGTRAP) {
             state.syscall.result = -EPERM;
-        }*/
+        }
     });
 
     UserNamespace userNamespaceModule;
