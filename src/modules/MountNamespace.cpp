@@ -18,6 +18,8 @@ void MountNamespace::apply(Runner &runner) {
     work = (fs::current_path() / work);
 
     runner.addHook(Hook::BeforeExec, [&](pid_t) {
+        auto curDir = std::filesystem::current_path();
+
         if (mkdir(upper.data(), 0777) && errno != EEXIST) {
             throw std::runtime_error{"Failed to mkdir upper"};
         }
@@ -49,10 +51,6 @@ void MountNamespace::apply(Runner &runner) {
             throw std::runtime_error{"Failed to pivot_root"};
         }
 
-        if (chdir("/")) {
-            throw std::runtime_error{"Failed to chdir to new root"};
-        }
-
         if (mkdir("/proc", 0555) && errno != EEXIST) {
             throw std::runtime_error{"Failed to mkdir /proc"};
         }
@@ -71,6 +69,10 @@ void MountNamespace::apply(Runner &runner) {
 
         if (setuid(0) == -1) {
             throw std::runtime_error{"Failed to setuid"};
+        }
+
+        if (chdir(curDir.c_str())) {
+            throw std::runtime_error{"Failed to chdir to old cwd"};
         }
     });
 
