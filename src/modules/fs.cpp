@@ -3,6 +3,8 @@
 #include <sys/syscall.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <linux/limits.h>
+#include <unistd.h>
 
 #include <iostream>
 
@@ -51,9 +53,11 @@ void FilesystemModule::apply() {
         handleAt(state, path, flags, fd);
     });
 
+#ifdef SYS_openat2
     ptraceModule.onSyscall(SYS_openat2, [&](ProcessState& state) {
         state.syscall.result = -EINVAL;
     });
+#endif
 
     ptraceModule.onSyscall(SYS_stat, [&](ProcessState& state) {
         fs::path path = state.readString((void*)state.syscall.args[0]);
@@ -178,5 +182,5 @@ void FilesystemModule::handleAt(ProcessState& state, const fs::path& path, unsig
         base = readLink(ss.str());
     }
     handle(state, base / path, flags);
-};
+}
 
