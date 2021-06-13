@@ -27,5 +27,6 @@ target_link_libraries(my_sandbox PRIVATE
     Threads::Threads
     cxxopts::cxxopts
     yaml-cpp
+    cap
 )
 target_include_directories(my_sandbox PRIVATE src)
