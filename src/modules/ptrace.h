@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../runner.h"
+#include "util/config.h"
 #include <array>
 
 struct Syscall {
@@ -25,7 +26,7 @@ struct PtraceModule {
 public:
     int exitCode;
 
-    void apply(Runner& runner);
+    void apply(Runner& runner, const YamlConfig& config);
     void onSyscall(long syscall, std::function<void(ProcessState&)> handler);
     void onStop(long signal, std::function<void(ProcessState&)> handler);
 

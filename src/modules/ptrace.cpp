@@ -71,14 +71,23 @@ static void stopSandbox() {
     }
 }
 
-void PtraceModule::apply(Runner& runner) {
-    onSyscall(SYS_kill, [&](ProcessState& state) {
-        pid_t pid = state.syscall.args[0];
-        int sig = state.syscall.args[1];
-        if (sig == SIGTRAP || !states.contains(pid)) {
-            state.syscall.result = -EPERM;
-        }
-    });
+void PtraceModule::apply(Runner& runner, const YamlConfig& config) {
+    if (config.get<bool>("pid_namespace", false)) {
+        onSyscall(SYS_kill, [&](ProcessState& state) {
+            int sig = state.syscall.args[1];
+            if (sig == SIGTRAP) {
+                state.syscall.result = -EPERM;
+            }
+        });
+    } else {
+        onSyscall(SYS_kill, [&](ProcessState& state) {
+            pid_t pid = state.syscall.args[0];
+            int sig = state.syscall.args[1];
+            if (sig == SIGTRAP || !states.contains(pid)) {
+                state.syscall.result = -EPERM;
+            }
+        });
+    }
 
     runner.addHook(Hook::BeforeExec, [](pid_t) {
         ptrace(PTRACE_TRACEME, 0, nullptr, nullptr);
